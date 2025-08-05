@@ -1,43 +1,158 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Derivada con la definición del límite</title>
-    <link rel="stylesheet" href="/static/style.css">
+<meta charset="UTF-8">
+<title>Derivada paso a paso</title>
+
+<!-- MathJax para fórmulas -->
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<!-- Plotly para gráficas -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<!-- math.js para cálculos -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; }
+h1 { text-align: center; }
+input, button { padding: 8px; margin: 5px; }
+.resultado { background: #f4f4f4; padding: 15px; border-radius: 8px; margin-top: 15px; }
+table { border-collapse: collapse; margin-top: 10px; }
+th, td { border: 1px solid #ccc; padding: 5px; text-align: center; }
+.derivadaFinal { font-size: 20px; font-weight: bold; color: darkblue; margin-top: 10px; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Derivada: Definición del Límite</h1>
-        <form method="POST" action="/">
-            <label for="expression">Ingrese la función f(x):</label>
-            <input type="text" id="expression" name="expression" placeholder="Ejemplo: x**2 + 3*x + 1" required>
 
-            <label for="variable">Variable (generalmente x):</label>
-            <input type="text" id="variable" name="variable" placeholder="x" required>
+<h1>📘 Derivada usando la fórmula del límite</h1>
+<p>Introduce la función \(f(x)\):</p>
+<input type="text" id="funcion" value="x^2 + 3*x + 2" size="30">
+<p>Introduce el punto \(x_0\) para el ejemplo numérico:</p>
+<input type="number" id="x0" value="2" step="any">
+<button onclick="calcular()">Calcular derivada</button>
 
-            <label for="x_val">Punto x donde calcular la derivada:</label>
-            <input type="number" step="any" id="x_val" name="x_val" placeholder="Ejemplo: 1" required>
+<div class="resultado" id="explicacion"></div>
+<div class="resultado" id="tablaNumerica"></div>
+<div class="resultado derivadaFinal" id="resultadoFinal"></div>
+<div id="grafica" style="width:100%;height:500px;"></div>
 
-            <button type="submit">Calcular Derivada</button>
-        </form>
+<script>
+function calcular() {
+    const funcionStr = document.getElementById("funcion").value;
+    const x0 = parseFloat(document.getElementById("x0").value);
 
-        {% if result %}
-        <h2>Resultado:</h2>
-        <p>{{ result|safe }}</p>
-        {% endif %}
+    try {
+        const parser = math.parser();
+        parser.evaluate(`f(x) = ${funcionStr}`);
 
-        {% if explanation %}
-        <div class="explanation">
-            <h3>Explicación paso a paso:</h3>
-            {{ explanation|safe }}
-        </div>
-        {% endif %}
+        let pasos = "";
 
-        {% if plot_url %}
-        <h3>Gráfica:</h3>
-        <img src="{{ plot_url }}" alt="Gráfica función y secantes">
-        {% endif %}
-    </div>
+        // Paso 1: Fórmula
+        pasos += `<b>1️⃣ Fórmula general:</b><br>`;
+        pasos += `\\[
+        f'(x) = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}
+        \\]<br><br>`;
+
+        // Paso 2: Sustitución
+        const f_xh_str = funcionStr.replace(/x/g, "(x+h)");
+        pasos += `<b>2️⃣ Sustituimos f(x):</b><br>`;
+        pasos += `\\[
+        f'(x) = \\lim_{h \\to 0} \\frac{${f_xh_str} - (${funcionStr})}{h}
+        \\]<br><br>`;
+
+        // Paso 3: Simplificar numerador
+        const exprOriginal = math.parse(funcionStr);
+        const exprXh = math.parse(f_xh_str);
+        const numerador = math.simplify(`(${exprXh}) - (${exprOriginal})`);
+        pasos += `<b>3️⃣ Simplificamos el numerador:</b><br>`;
+        pasos += `\\[
+        ${numerador.toString()}
+        \\]<br><br>`;
+
+        // Paso 4: Dividir entre h
+        const cociente = math.simplify(`(${numerador}) / h`);
+        pasos += `<b>4️⃣ Dividimos todo entre h:</b><br>`;
+        pasos += `\\[
+        ${cociente.toString()}
+        \\]<br><br>`;
+
+        // Paso 5: Aplicar límite h->0
+        const derivada = math.simplify(cociente.toString().replace(/h/g, "0"));
+        pasos += `<b>5️⃣ Límite cuando h → 0:</b><br>`;
+        pasos += `\\[
+        f'(x) = ${derivada.toString()}
+        \\]<br><br>`;
+
+        document.getElementById("explicacion").innerHTML = pasos;
+        MathJax.typeset();
+
+        // --- Ejemplo numérico ---
+        let tabla = `<b>📊 Ejemplo numérico en x₀ = ${x0}:</b><br><table><tr><th>h</th><th>(f(x₀+h) - f(x₀))/h</th></tr>`;
+        let hs = [1, 0.5, 0.1, 0.01, 0.001];
+        hs.forEach(h => {
+            let val = (parser.evaluate(`f(${x0}+${h})`) - parser.evaluate(`f(${x0})`)) / h;
+            tabla += `<tr><td>${h}</td><td>${val.toFixed(6)}</td></tr>`;
+        });
+        tabla += "</table>";
+        document.getElementById("tablaNumerica").innerHTML = tabla;
+
+        // --- Valor final ---
+        const derivadaNum = parser.evaluate(derivada.toString().replace(/x/g, `(${x0})`));
+        document.getElementById("resultadoFinal").innerHTML =
+            `📌 Derivada en x₀ = ${x0}: <span style="color:red">${derivadaNum}</span>`;
+
+        // --- Gráfica con animación ---
+        const f = (x) => parser.evaluate(`f(${x})`);
+        const df = (x) => parser.evaluate(derivada.toString().replace(/x/g, `(${x})`));
+
+        let xs = [], ys1 = [], ys2 = [];
+        for (let xi = -10; xi <= 10; xi += 0.1) {
+            xs.push(xi);
+            ys1.push(f(xi));
+            ys2.push(df(xi));
+        }
+
+        // Configuración inicial de secante
+        let hAnim = 3;
+        let secX = [x0, x0 + hAnim];
+        let secY = [f(x0), f(x0 + hAnim)];
+
+        const trace1 = { x: xs, y: ys1, type: 'scatter', name: 'f(x)' };
+        const trace2 = { x: xs, y: ys2, type: 'scatter', name: "f'(x)" };
+        const secante = { x: secX, y: secY, type: 'scatter', mode: 'lines', name: 'Secante', line: { dash: 'dot', color: 'red' } };
+        const punto = { x: [x0], y: [f(x0)], type: 'scatter', mode: 'markers', name: 'Punto x₀', marker: { size: 8, color: 'black' } };
+
+        Plotly.newPlot('grafica', [trace1, trace2, secante, punto], {
+            title: 'Función, derivada y recta secante → tangente',
+            xaxis: { title: 'x' },
+            yaxis: { title: 'Valor' }
+        });
+
+        // Animación suave
+        let interval = setInterval(() => {
+            if (hAnim > 0.05) {
+                hAnim *= 0.8;
+                secX = [x0, x0 + hAnim];
+                secY = [f(x0), f(x0 + hAnim)];
+                Plotly.update('grafica', { x: [xs, xs, secX, [x0]], y: [ys1, ys2, secY, [f(x0)]] });
+            } else {
+                clearInterval(interval);
+                // Mostrar tangente final
+                let pendiente = df(x0);
+                let tangenteX = [x0 - 2, x0 + 2];
+                let tangenteY = tangenteX.map(xx => pendiente * (xx - x0) + f(x0));
+                Plotly.addTraces('grafica', { x: tangenteX, y: tangenteY, type: 'scatter', mode: 'lines', name: 'Tangente', line: { color: 'green' } });
+            }
+        }, 500);
+
+    } catch (err) {
+        document.getElementById("explicacion").innerHTML = `<b>Error:</b> Verifica que la función esté bien escrita.`;
+    }
+}
+</script>
+
 </body>
 </html>
