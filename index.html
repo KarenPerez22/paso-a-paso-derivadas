@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Derivada paso a paso</title>
+<title>Derivada paso a paso - Método del Límite</title>
 
 <!-- MathJax para fórmulas -->
 <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
@@ -22,7 +22,6 @@ input, button { padding: 8px; margin: 5px; }
 .resultado { background: #f4f4f4; padding: 15px; border-radius: 8px; margin-top: 15px; }
 table { border-collapse: collapse; margin-top: 10px; }
 th, td { border: 1px solid #ccc; padding: 5px; text-align: center; }
-.derivadaFinal { font-size: 20px; font-weight: bold; color: darkblue; margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -36,7 +35,6 @@ th, td { border: 1px solid #ccc; padding: 5px; text-align: center; }
 
 <div class="resultado" id="explicacion"></div>
 <div class="resultado" id="tablaNumerica"></div>
-<div class="resultado derivadaFinal" id="resultadoFinal"></div>
 <div id="grafica" style="width:100%;height:500px;"></div>
 
 <script>
@@ -50,20 +48,20 @@ function calcular() {
 
         let pasos = "";
 
-        // Paso 1: Fórmula
-        pasos += `<b>1️⃣ Fórmula general:</b><br>`;
+        // Paso 1: Fórmula general
+        pasos += `<b>1️⃣ Fórmula general de la derivada:</b><br>`;
         pasos += `\\[
         f'(x) = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}
         \\]<br><br>`;
 
-        // Paso 2: Sustitución
+        // Paso 2: Sustitución de f(x)
         const f_xh_str = funcionStr.replace(/x/g, "(x+h)");
-        pasos += `<b>2️⃣ Sustituimos f(x):</b><br>`;
+        pasos += `<b>2️⃣ Sustituimos la función:</b><br>`;
         pasos += `\\[
         f'(x) = \\lim_{h \\to 0} \\frac{${f_xh_str} - (${funcionStr})}{h}
         \\]<br><br>`;
 
-        // Paso 3: Simplificar numerador
+        // Paso 3: Expansión y simplificación del numerador
         const exprOriginal = math.parse(funcionStr);
         const exprXh = math.parse(f_xh_str);
         const numerador = math.simplify(`(${exprXh}) - (${exprOriginal})`);
@@ -72,7 +70,7 @@ function calcular() {
         ${numerador.toString()}
         \\]<br><br>`;
 
-        // Paso 4: Dividir entre h
+        // Paso 4: División entre h
         const cociente = math.simplify(`(${numerador}) / h`);
         pasos += `<b>4️⃣ Dividimos todo entre h:</b><br>`;
         pasos += `\\[
@@ -81,7 +79,7 @@ function calcular() {
 
         // Paso 5: Aplicar límite h->0
         const derivada = math.simplify(cociente.toString().replace(/h/g, "0"));
-        pasos += `<b>5️⃣ Límite cuando h → 0:</b><br>`;
+        pasos += `<b>5️⃣ Tomamos el límite cuando h → 0:</b><br>`;
         pasos += `\\[
         f'(x) = ${derivada.toString()}
         \\]<br><br>`;
@@ -99,12 +97,7 @@ function calcular() {
         tabla += "</table>";
         document.getElementById("tablaNumerica").innerHTML = tabla;
 
-        // --- Valor final ---
-        const derivadaNum = parser.evaluate(derivada.toString().replace(/x/g, `(${x0})`));
-        document.getElementById("resultadoFinal").innerHTML =
-            `📌 Derivada en x₀ = ${x0}: <span style="color:red">${derivadaNum}</span>`;
-
-        // --- Gráfica con animación ---
+        // --- Gráfica ---
         const f = (x) => parser.evaluate(`f(${x})`);
         const df = (x) => parser.evaluate(derivada.toString().replace(/x/g, `(${x})`));
 
@@ -115,41 +108,17 @@ function calcular() {
             ys2.push(df(xi));
         }
 
-        // Configuración inicial de secante
-        let hAnim = 3;
-        let secX = [x0, x0 + hAnim];
-        let secY = [f(x0), f(x0 + hAnim)];
-
         const trace1 = { x: xs, y: ys1, type: 'scatter', name: 'f(x)' };
         const trace2 = { x: xs, y: ys2, type: 'scatter', name: "f'(x)" };
-        const secante = { x: secX, y: secY, type: 'scatter', mode: 'lines', name: 'Secante', line: { dash: 'dot', color: 'red' } };
-        const punto = { x: [x0], y: [f(x0)], type: 'scatter', mode: 'markers', name: 'Punto x₀', marker: { size: 8, color: 'black' } };
 
-        Plotly.newPlot('grafica', [trace1, trace2, secante, punto], {
-            title: 'Función, derivada y recta secante → tangente',
+        Plotly.newPlot('grafica', [trace1, trace2], {
+            title: 'Función y su derivada',
             xaxis: { title: 'x' },
             yaxis: { title: 'Valor' }
         });
 
-        // Animación suave
-        let interval = setInterval(() => {
-            if (hAnim > 0.05) {
-                hAnim *= 0.8;
-                secX = [x0, x0 + hAnim];
-                secY = [f(x0), f(x0 + hAnim)];
-                Plotly.update('grafica', { x: [xs, xs, secX, [x0]], y: [ys1, ys2, secY, [f(x0)]] });
-            } else {
-                clearInterval(interval);
-                // Mostrar tangente final
-                let pendiente = df(x0);
-                let tangenteX = [x0 - 2, x0 + 2];
-                let tangenteY = tangenteX.map(xx => pendiente * (xx - x0) + f(x0));
-                Plotly.addTraces('grafica', { x: tangenteX, y: tangenteY, type: 'scatter', mode: 'lines', name: 'Tangente', line: { color: 'green' } });
-            }
-        }, 500);
-
     } catch (err) {
-        document.getElementById("explicacion").innerHTML = `<b>Error:</b> Verifica que la función esté bien escrita.`;
+        document.getElementById("explicacion").innerHTML = `<b>Error:</b> Revisa la sintaxis de la función.`;
     }
 }
 </script>
