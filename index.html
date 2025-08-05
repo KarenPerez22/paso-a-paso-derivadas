@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Derivada con la definición del límite</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Derivada: Definición del Límite</h1>
+        <form method="POST" action="/">
+            <label for="expression">Ingrese la función f(x):</label>
+            <input type="text" id="expression" name="expression" placeholder="Ejemplo: x**2 + 3*x + 1" required>
+
+            <label for="variable">Variable (generalmente x):</label>
+            <input type="text" id="variable" name="variable" placeholder="x" required>
+
+            <label for="x_val">Punto x donde calcular la derivada:</label>
+            <input type="number" step="any" id="x_val" name="x_val" placeholder="Ejemplo: 1" required>
+
+            <button type="submit">Calcular Derivada</button>
+        </form>
+
+        {% if result %}
+        <h2>Resultado:</h2>
+        <p>{{ result|safe }}</p>
+        {% endif %}
+
+        {% if explanation %}
+        <div class="explanation">
+            <h3>Explicación paso a paso:</h3>
+            {{ explanation|safe }}
+        </div>
+        {% endif %}
+
+        {% if plot_url %}
+        <h3>Gráfica:</h3>
+        <img src="{{ plot_url }}" alt="Gráfica función y secantes">
+        {% endif %}
+    </div>
+</body>
+</html>
