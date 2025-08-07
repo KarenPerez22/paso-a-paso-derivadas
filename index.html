@@ -1,127 +1,62 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Derivada paso a paso - Método del Límite</title>
+import numpy as np
+import matplotlib.pyplot as plt
 
-<!-- MathJax para fórmulas -->
-<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-<script id="MathJax-script" async
-  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+# Paso 1: Definir la función
+def f(x):
+    return x**2
 
-<!-- Plotly para gráficas -->
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+# Paso 2: Elegir el punto donde queremos derivar
+x0 = 2  # Punto donde se calcula la derivada
 
-<!-- math.js para cálculos -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+# Paso 3: Definir la fórmula del límite
+def derivada_limite(f, x0, h):
+    return (f(x0 + h) - f(x0)) / h
 
-<style>
-body { font-family: Arial, sans-serif; margin: 20px; }
-h1 { text-align: center; }
-input, button { padding: 8px; margin: 5px; }
-.resultado { background: #f4f4f4; padding: 15px; border-radius: 8px; margin-top: 15px; }
-table { border-collapse: collapse; margin-top: 10px; }
-th, td { border: 1px solid #ccc; padding: 5px; text-align: center; }
-</style>
-</head>
-<body>
+# Paso 4: Mostrar cómo se aproxima el límite
+h_values = [1, 0.1, 0.01, 0.001]
+print("Paso 4: Aproximación del límite")
+for h in h_values:
+    d = derivada_limite(f, x0, h)
+    print(f"h = {h:<6} => derivada ≈ {d:.5f}")
 
-<h1>📘 Derivada usando la fórmula del límite</h1>
-<p>Introduce la función \(f(x)\):</p>
-<input type="text" id="funcion" value="x^2 + 3*x + 2" size="30">
-<p>Introduce el punto \(x_0\) para el ejemplo numérico:</p>
-<input type="number" id="x0" value="2" step="any">
-<button onclick="calcular()">Calcular derivada</button>
+# Paso 5: Calcular el valor exacto del límite
+# Para f(x) = x^2, la derivada es f'(x) = 2x
+derivada_exacta = 2 * x0
+print(f"\nPaso 5: Valor exacto de la derivada en x = {x0} es {derivada_exacta}")
 
-<div class="resultado" id="explicacion"></div>
-<div class="resultado" id="tablaNumerica"></div>
-<div id="grafica" style="width:100%;height:500px;"></div>
+# Paso 6: Mostrar visualmente la pendiente secante vs tangente
+x = np.linspace(0, 4, 100)
+y = f(x)
 
-<script>
-function calcular() {
-    const funcionStr = document.getElementById("funcion").value;
-    const x0 = parseFloat(document.getElementById("x0").value);
+# Secante con h = 0.5
+h_secante = 0.5
+x1 = x0 + h_secante
+m_secante = derivada_limite(f, x0, h_secante)
 
-    try {
-        const parser = math.parser();
-        parser.evaluate(`f(x) = ${funcionStr}`);
+# Tangente
+m_tangente = derivada_exacta
 
-        let pasos = "";
+# Paso 7: Graficar función, secante y tangente
+plt.figure(figsize=(10, 6))
+plt.plot(x, y, label='f(x) = x²', color='blue')
+plt.scatter([x0], [f(x0)], color='red', label='Punto de derivación')
 
-        // Paso 1: Fórmula general
-        pasos += `<b>1️⃣ Fórmula general de la derivada:</b><br>`;
-        pasos += `\\[
-        f'(x) = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}
-        \\]<br><br>`;
+# Línea secante
+plt.plot([x0, x1], [f(x0), f(x1)], '--', label='Recta secante (h=0.5)', color='orange')
 
-        // Paso 2: Sustitución de f(x)
-        const f_xh_str = funcionStr.replace(/x/g, "(x+h)");
-        pasos += `<b>2️⃣ Sustituimos la función:</b><br>`;
-        pasos += `\\[
-        f'(x) = \\lim_{h \\to 0} \\frac{${f_xh_str} - (${funcionStr})}{h}
-        \\]<br><br>`;
+# Línea tangente
+x_tangent = np.linspace(x0 - 1, x0 + 1, 10)
+y_tangent = f(x0) + m_tangente * (x_tangent - x0)
+plt.plot(x_tangent, y_tangent, '-', label='Recta tangente', color='green')
 
-        // Paso 3: Expansión y simplificación del numerador
-        const exprOriginal = math.parse(funcionStr);
-        const exprXh = math.parse(f_xh_str);
-        const numerador = math.simplify(`(${exprXh}) - (${exprOriginal})`);
-        pasos += `<b>3️⃣ Simplificamos el numerador:</b><br>`;
-        pasos += `\\[
-        ${numerador.toString()}
-        \\]<br><br>`;
+plt.title("Paso 7: Visualización de derivada como pendiente")
+plt.xlabel("x")
+plt.ylabel("f(x)")
+plt.legend()
+plt.grid(True)
+plt.show()
 
-        // Paso 4: División entre h
-        const cociente = math.simplify(`(${numerador}) / h`);
-        pasos += `<b>4️⃣ Dividimos todo entre h:</b><br>`;
-        pasos += `\\[
-        ${cociente.toString()}
-        \\]<br><br>`;
-
-        // Paso 5: Aplicar límite h->0
-        const derivada = math.simplify(cociente.toString().replace(/h/g, "0"));
-        pasos += `<b>5️⃣ Tomamos el límite cuando h → 0:</b><br>`;
-        pasos += `\\[
-        f'(x) = ${derivada.toString()}
-        \\]<br><br>`;
-
-        document.getElementById("explicacion").innerHTML = pasos;
-        MathJax.typeset();
-
-        // --- Ejemplo numérico ---
-        let tabla = `<b>📊 Ejemplo numérico en x₀ = ${x0}:</b><br><table><tr><th>h</th><th>(f(x₀+h) - f(x₀))/h</th></tr>`;
-        let hs = [1, 0.5, 0.1, 0.01, 0.001];
-        hs.forEach(h => {
-            let val = (parser.evaluate(`f(${x0}+${h})`) - parser.evaluate(`f(${x0})`)) / h;
-            tabla += `<tr><td>${h}</td><td>${val.toFixed(6)}</td></tr>`;
-        });
-        tabla += "</table>";
-        document.getElementById("tablaNumerica").innerHTML = tabla;
-
-        // --- Gráfica ---
-        const f = (x) => parser.evaluate(`f(${x})`);
-        const df = (x) => parser.evaluate(derivada.toString().replace(/x/g, `(${x})`));
-
-        let xs = [], ys1 = [], ys2 = [];
-        for (let xi = -10; xi <= 10; xi += 0.1) {
-            xs.push(xi);
-            ys1.push(f(xi));
-            ys2.push(df(xi));
-        }
-
-        const trace1 = { x: xs, y: ys1, type: 'scatter', name: 'f(x)' };
-        const trace2 = { x: xs, y: ys2, type: 'scatter', name: "f'(x)" };
-
-        Plotly.newPlot('grafica', [trace1, trace2], {
-            title: 'Función y su derivada',
-            xaxis: { title: 'x' },
-            yaxis: { title: 'Valor' }
-        });
-
-    } catch (err) {
-        document.getElementById("explicacion").innerHTML = `<b>Error:</b> Revisa la sintaxis de la función.`;
-    }
-}
-</script>
-
-</body>
-</html>
+# Paso 8: Conclusión
+print("\nPaso 8: Conclusión")
+print("La derivada en un punto representa la pendiente de la recta tangente.")
+print("Usando la definición de límite, aproximamos esta pendiente con valores pequeños de h.")
