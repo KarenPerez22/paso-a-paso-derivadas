@@ -1,62 +1,24 @@
-import numpy as np
-import matplotlib.pyplot as plt
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Derivadas Paso a Paso</title>
+  <link rel="stylesheet" href="style.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.1/math.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Derivadas con Fórmula del Límite</h1>
+    <p>Introduce una función (por ejemplo: x^2)</p>
+    <input type="text" id="funcion" placeholder="f(x) = " />
+    <button onclick="calcularDerivada()">Calcular Derivada</button>
 
-# Paso 1: Definir la función
-def f(x):
-    return x**2
+    <div id="pasos"></div>
+    <div id="grafica" style="margin-top: 30px;"></div>
+  </div>
 
-# Paso 2: Elegir el punto donde queremos derivar
-x0 = 2  # Punto donde se calcula la derivada
-
-# Paso 3: Definir la fórmula del límite
-def derivada_limite(f, x0, h):
-    return (f(x0 + h) - f(x0)) / h
-
-# Paso 4: Mostrar cómo se aproxima el límite
-h_values = [1, 0.1, 0.01, 0.001]
-print("Paso 4: Aproximación del límite")
-for h in h_values:
-    d = derivada_limite(f, x0, h)
-    print(f"h = {h:<6} => derivada ≈ {d:.5f}")
-
-# Paso 5: Calcular el valor exacto del límite
-# Para f(x) = x^2, la derivada es f'(x) = 2x
-derivada_exacta = 2 * x0
-print(f"\nPaso 5: Valor exacto de la derivada en x = {x0} es {derivada_exacta}")
-
-# Paso 6: Mostrar visualmente la pendiente secante vs tangente
-x = np.linspace(0, 4, 100)
-y = f(x)
-
-# Secante con h = 0.5
-h_secante = 0.5
-x1 = x0 + h_secante
-m_secante = derivada_limite(f, x0, h_secante)
-
-# Tangente
-m_tangente = derivada_exacta
-
-# Paso 7: Graficar función, secante y tangente
-plt.figure(figsize=(10, 6))
-plt.plot(x, y, label='f(x) = x²', color='blue')
-plt.scatter([x0], [f(x0)], color='red', label='Punto de derivación')
-
-# Línea secante
-plt.plot([x0, x1], [f(x0), f(x1)], '--', label='Recta secante (h=0.5)', color='orange')
-
-# Línea tangente
-x_tangent = np.linspace(x0 - 1, x0 + 1, 10)
-y_tangent = f(x0) + m_tangente * (x_tangent - x0)
-plt.plot(x_tangent, y_tangent, '-', label='Recta tangente', color='green')
-
-plt.title("Paso 7: Visualización de derivada como pendiente")
-plt.xlabel("x")
-plt.ylabel("f(x)")
-plt.legend()
-plt.grid(True)
-plt.show()
-
-# Paso 8: Conclusión
-print("\nPaso 8: Conclusión")
-print("La derivada en un punto representa la pendiente de la recta tangente.")
-print("Usando la definición de límite, aproximamos esta pendiente con valores pequeños de h.")
+  <script src="script.js"></script>
+</body>
+</html>
